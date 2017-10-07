@@ -152,11 +152,11 @@ publish/
 PublishScripts/
 
 # NuGet Packages
-*.nupkg
+#*.nupkg
 # The packages folder can be ignored because of Package Restore
-**/packages/*
+#**/packages/*
 # except build/, which is used as an MSBuild target.
-!**/packages/build/
+#!**/packages/build/
 # Uncomment if necessary however generally it will be regenerated when needed
 #!**/packages/repositories.config
 # NuGet v3's project.json files produces more ignoreable files
@@ -259,3 +259,6 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+
+!packages/**
+packages/OpenTK.2.0.0/lib/net20/OpenTK.xml
