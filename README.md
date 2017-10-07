@@ -9,5 +9,5 @@ Just make this a dependency of your project.
 
 | Feature|
 | ------ |
-| ~~Finish it~~ |
-| ~~Add to NuGet~~ |
+| Finish it |
+| Add to NuGet |
