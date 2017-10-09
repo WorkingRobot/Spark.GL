@@ -8,22 +8,26 @@ namespace Spark.GL
         public string Name;
         public bool Active;
         public Transform transform {get; private set;}
-        private List<IComponent> components;
+        private List<Component> components;
 
-        public void AddComponent(IComponent component)
+        public T AddComponent<T>() where T : Component, new()
         {
-            if (GetComponent(component.GetType()) == null)
-                components.Add(component);
-            else
-                throw new ArgumentException(String.Format("{0} already exists in {1}", component.GetType().FullName, Name));
-        }
-        public IComponent GetComponent(Type componentType)
-        {
-            foreach (IComponent component in components)
+            if (GetComponent<T>() == null)
             {
-                if (componentType == component.GetType())
+                T comp = new T();
+                comp.gameObject = this;
+                components.Add(comp);
+                return comp;
+            }
+            throw new ArgumentException(String.Format("{0} already exists in {1}", typeof(T).FullName, Name));
+        }
+        public T GetComponent<T>() where T : Component
+        {
+            foreach (Component component in components)
+            {
+                if (typeof(T) == component.GetType())
                 {
-                    return component;
+                    return (T)component;
                 }
             }
             return null;
@@ -47,6 +51,11 @@ namespace Spark.GL
         public GameObject(string name)
         {
             Name = name;
+            transform = new Transform();
+            components = new List<Component>();
+            Active = true;
+            children = new List<GameObject>();
+            parent = null;
         }
     }
 }

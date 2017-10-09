@@ -2,9 +2,9 @@
 {
     internal sealed class Vec3
     {
-        public double X;
-        public double Y;
-        public double Z;
+        public float X;
+        public float Y;
+        public float Z;
 
         public Vec3(int x, int y, int z)
         {
@@ -20,9 +20,13 @@
         }
         public Vec3(double x, double y, double z)
         {
-            X = x;
-            Y = y;
-            Z = z;
+            X = (float)x;
+            Y = (float)y;
+            Z = (float)z;
+        }
+        public Vec3()
+        {
+            X = Y = Z = 0;
         }
     }
 }
