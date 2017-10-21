@@ -2,7 +2,7 @@
 
 namespace Spark.GL
 {
-    internal struct KeyboardInput
+    public struct KeyboardInput
     {
         private KeyboardState state;
         public IBaseWindow window;
@@ -22,7 +22,7 @@ namespace Spark.GL
         }
     }
 
-    internal enum Key
+    public enum Key
     {
         Unknown = 0,
         ShiftLeft = 1,

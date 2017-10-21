@@ -1,6 +1,6 @@
 ﻿namespace Spark.GL
 {
-    internal class Transform
+    public class Transform
     {
         public Vec3 Position { get; set; }
         public Vec3 Rotation { get; set; }
@@ -16,7 +16,7 @@
         {
             Position = new Vec3();
             Rotation = new Vec3();
-            Scale = new Vec3();
+            Scale = new Vec3(1,1,1);
         }
     }
 }

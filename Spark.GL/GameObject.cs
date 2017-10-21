@@ -3,12 +3,13 @@ using System.Collections.Generic;
 
 namespace Spark.GL
 {
-    internal class GameObject
+    public class GameObject
     {
         public string Name;
         public bool Active;
-        public Transform transform {get; private set;}
-        private List<Component> components;
+        public Transform transform;
+        public Material material = new Material();
+        internal List<Component> components;
 
         public T AddComponent<T>() where T : Component, new()
         {

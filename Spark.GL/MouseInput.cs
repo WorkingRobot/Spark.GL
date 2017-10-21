@@ -2,12 +2,14 @@
 
 namespace Spark.GL
 {
-    internal struct MouseInput
+    public struct MouseInput
     {
         private MouseState state;
-        public IBaseWindow window;
-        public MouseInput(IBaseWindow window) {
+        private MouseState cursor;
+        public Window window;
+        public MouseInput(Window window) {
             state = Mouse.GetState();
+            cursor = Mouse.GetCursorState();
             this.window = window;
         }
         public bool ButtonDown(MouseButton button)
@@ -18,11 +20,16 @@ namespace Spark.GL
         {
             return state.IsButtonUp((OpenTK.Input.MouseButton)button);
         }
-        public int PosX { get { return state.X; } }
-        public int PosY { get { return state.Y; } }
+        public int PosX { get { return cursor.X; } }
+        public int PosY { get { return cursor.Y; } }
         public float ScrollSpeed { get { return state.WheelPrecise; } }
+
+        public void ResetMousePosition()
+        {
+            Mouse.SetPosition(window.gw.Bounds.Left + window.gw.Bounds.Width / 2, window.gw.Bounds.Top + window.gw.Bounds.Height / 2);
+        }
     }
-    internal enum MouseButton
+    public enum MouseButton
     {
         Left = 0,
         Right = 2,

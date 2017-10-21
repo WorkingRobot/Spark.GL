@@ -1,6 +1,6 @@
-﻿namespace Spark.GL.Components
+﻿namespace Spark.GL
 {
-    internal class MeshFilter : Component
+    public class MeshFilter : Component
     {
         public Mesh mesh;
     }

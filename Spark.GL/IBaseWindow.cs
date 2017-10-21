@@ -1,12 +1,15 @@
 ﻿namespace Spark.GL
 {
-    internal interface IBaseWindow
+    public interface IBaseWindow
     {
         void Start();
         void Exit();
         GameObject[] GetAllObjects();
+        GameObject GetObject(string name);
+        void AddObject(GameObject obj);
+        void RemoveObject(GameObject obj);
         Camera GetCamera();
-        void SetCamera();
+        void SetCamera(Camera camera);
         KeyboardInput GetKeyboardInput();
         MouseInput GetMouseInput();
     }
