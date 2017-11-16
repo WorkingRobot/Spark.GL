@@ -2,6 +2,7 @@
 {
     public class MeshFilter : Component
     {
-        public Mesh mesh;
+        public Material material { get; set; }
+        public Mesh mesh { get; set; }
     }
 }

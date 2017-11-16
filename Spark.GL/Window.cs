@@ -12,11 +12,18 @@ namespace Spark.GL
 {
     public class Window : IBaseWindow
     {
+        internal static Window window;
         Camera camera;
         List<GameObject> gameObjects = new List<GameObject>();
+        Light activeLight = new Light(new Vec3(-5,5,0), new Vec3(1f, 0.1f, 0.1f));
+        Matrix4 view = Matrix4.Identity;
+        public Dictionary<string, int> textures = new Dictionary<string, int>();
+        public Dictionary<string, Shader> shaders = new Dictionary<string, Shader>();
+        public Dictionary<String, Material> materials = new Dictionary<string, Material>();
         internal GameWindow gw;
         static internal Shader defaultShader;
         int ibo_elements;
+        private bool woken = false;
         private bool updated;
 
         string Title;
@@ -24,6 +31,7 @@ namespace Spark.GL
         public int Height { private set; get; }
         public Window(int width, int height, string title = "")
         {
+            window = this;
             Width = width;
             Height = height;
             Title = title;
@@ -58,26 +66,31 @@ namespace Spark.GL
             camera = cam;
         }
 
-        public void Start()
+        public void Wake()
         {
+            Console.WriteLine("opening gw");
             gw = new GameWindow(Width, Height, GraphicsMode.Default, Title);
             GL4.ClearColor(Color4.CornflowerBlue);
-            gw.UpdateFrame += Gw_UpdateFrame;
+            
             gw.Load += Gw_Load;
-            gw.RenderFrame += Gw_RenderFrame;
+            
+        }
+
+        public void Run()
+        {
             foreach (GameObject go in gameObjects)
             {
-                foreach(Component component in go.components)
+                foreach (Component component in go.components)
                 {
-                    component.Awake();
+                    component.Load();
                 }
             }
-            defaultShader = new Shader("C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/ColorShader/vs.glsl", "C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/ColorShader/fs.glsl", true);
-            gw.Run(60);
+            gw.Run(30, 30);
         }
 
         private void Gw_RenderFrame(object sender, FrameEventArgs e)
         {
+            if (!woken) return;
             foreach (GameObject go in gameObjects)
             {
                 foreach (Component component in go.components)
@@ -91,6 +104,7 @@ namespace Spark.GL
             GL4.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL4.Enable(EnableCap.DepthTest);
 
+            GL4.UseProgram(defaultShader.ProgramID);
             defaultShader.EnableVertexAttribArrays();
 
             int indiceat = 0;
@@ -100,12 +114,61 @@ namespace Spark.GL
             {
                 MeshRenderer r = v.GetComponent<MeshRenderer>();
                 if (r == null) continue;
-                GL4.BindTexture(TextureTarget.Texture2D, v.material.textureID);
+                GL4.BindTexture(TextureTarget.Texture2D, r.f.material.TextureID);
                 GL4.UniformMatrix4(defaultShader.GetUniform("modelview"), false, ref r.ModelViewProjectionMatrix);
-
+                //Console.WriteLine(r.f.material.TextureID);
                 if (defaultShader.GetAttribute("maintexture") != -1)
                 {
-                    GL4.Uniform1(defaultShader.GetAttribute("maintexture"), v.material.textureID);
+                    GL4.Uniform1(defaultShader.GetAttribute("maintexture"), r.f.material.TextureID);
+                }
+                if (defaultShader.GetUniform("view") != -1)
+                {
+                    GL4.UniformMatrix4(defaultShader.GetUniform("view"), false, ref view);
+                }
+
+                if (defaultShader.GetUniform("model") != -1)
+                {
+                    GL4.UniformMatrix4(defaultShader.GetUniform("model"), false, ref r.ModelMatrix);
+                }
+
+                if (defaultShader.GetUniform("material_ambient") != -1)
+                {
+                    GL4.Uniform3(defaultShader.GetUniform("material_ambient"), ref r.f.material.AmbientColor);
+                }
+
+                if (defaultShader.GetUniform("material_diffuse") != -1)
+                {
+                    GL4.Uniform3(defaultShader.GetUniform("material_diffuse"), ref r.f.material.DiffuseColor);
+                }
+
+                if (defaultShader.GetUniform("material_specular") != -1)
+                {
+                    GL4.Uniform3(defaultShader.GetUniform("material_specular"), ref r.f.material.SpecularColor);
+                }
+
+                if (defaultShader.GetUniform("material_specExponent") != -1)
+                {
+                    GL4.Uniform1(defaultShader.GetUniform("material_specExponent"), r.f.material.SpecularExponent);
+                }
+
+                if (defaultShader.GetUniform("light_position") != -1)
+                {
+                    GL4.Uniform3(defaultShader.GetUniform("light_position"), ref activeLight.Position);
+                }
+
+                if (defaultShader.GetUniform("light_color") != -1)
+                {
+                    GL4.Uniform3(defaultShader.GetUniform("light_color"), ref activeLight.Color);
+                }
+
+                if (defaultShader.GetUniform("light_diffuseIntensity") != -1)
+                {
+                    GL4.Uniform1(defaultShader.GetUniform("light_diffuseIntensity"), activeLight.DiffuseIntensity);
+                }
+
+                if (defaultShader.GetUniform("light_ambientIntensity") != -1)
+                {
+                    GL4.Uniform1(defaultShader.GetUniform("light_ambientIntensity"), activeLight.AmbientIntensity);
                 }
 
                 GL4.DrawElements(BeginMode.Triangles, r.mesh.Triangles.Length*3, DrawElementsType.UnsignedInt, indiceat * sizeof(uint));
@@ -121,19 +184,22 @@ namespace Spark.GL
 
         private void Gw_Load(object sender, EventArgs e)
         {
-            GL4.GenBuffers(1, out ibo_elements);
             OpenTK.Input.Mouse.SetPosition(gw.Bounds.Left + gw.Bounds.Width / 2, gw.Bounds.Top + gw.Bounds.Height / 2);
-            foreach (GameObject go in gameObjects)
-            {
-                foreach (Component component in go.components)
-                {
-                    component.Load();
-                }
-            }
+            GL4.GenBuffers(1, out ibo_elements);
+            //System.Threading.SpinWait.SpinUntil(() => loaded);
+            //Console.WriteLine("shader init");
+            //defaultShader = new Shader("C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/LitShader/vs.glsl", "C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/LitShader/fs.glsl", true);
+            defaultShader = new Shader("C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/TexShader/vs.glsl", "C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/TexShader/fs.glsl", true);
+            Console.WriteLine("shader finish init. go on. wake finish");
+            
+            woken = true;
+            gw.RenderFrame += Gw_RenderFrame;
+            gw.UpdateFrame += Gw_UpdateFrame;
         }
 
         private void Gw_UpdateFrame(object sender, FrameEventArgs e)
         {
+            if (!woken) return;
             foreach (GameObject go in gameObjects)
             {
                 foreach (Component component in go.components)
@@ -146,6 +212,7 @@ namespace Spark.GL
             List<int> inds = new List<int>();
             List<Vector3> colors = new List<Vector3>();
             List<Vector2> texcoords = new List<Vector2>();
+            List<Vector3> normals = new List<Vector3>();
 
             int vertcount = 0;
             foreach (GameObject go in gameObjects)
@@ -153,17 +220,19 @@ namespace Spark.GL
                 MeshRenderer renderer = go.GetComponent<MeshRenderer>();
                 if (renderer != null)
                 {
-                    verts.AddRange(Array.ConvertAll(renderer.mesh.Vertices, item => (Vector3)item));
+                    verts.AddRange(Array.ConvertAll(renderer.mesh.Verticies, item => (Vector3)item));
                     inds.AddRange(renderer.mesh.TrianglesToInds(vertcount));
-                    colors.AddRange(Array.ConvertAll(renderer.mesh.Colors, item => (Vector3)item));
+                    //colors.AddRange(Array.ConvertAll(renderer.mesh.Colors, item => (Vector3)item));
                     texcoords.AddRange(Array.ConvertAll(renderer.mesh.Textures, item => (Vector2)item));
-                    vertcount += renderer.mesh.Vertices.Length;
+                    normals.AddRange(Array.ConvertAll(renderer.mesh.Normals, item => (Vector3)item));
+                    vertcount += renderer.mesh.Verticies.Length;
                 }
             }
             Vector3[] vertdata = verts.ToArray();
             int[] inddata = inds.ToArray();
             Vector3[] coldata = colors.ToArray();
             Vector2[] texcoorddata = texcoords.ToArray();
+            Vector3[] normdata = normals.ToArray();
             GL4.BindBuffer(BufferTarget.ArrayBuffer, defaultShader.GetBuffer("vPosition"));
 
             GL4.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vertdata.Length * Vector3.SizeInBytes), vertdata, BufferUsageHint.StaticDraw);
@@ -185,6 +254,14 @@ namespace Spark.GL
                 GL4.VertexAttribPointer(defaultShader.GetAttribute("texcoord"), 2, VertexAttribPointerType.Float, true, 0, 0);
             }
 
+            if (defaultShader.GetAttribute("vNormal") != -1)
+            {
+                GL4.BindBuffer(BufferTarget.ArrayBuffer, defaultShader.GetBuffer("vNormal"));
+                GL4.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(normdata.Length * Vector3.SizeInBytes), normdata, BufferUsageHint.StaticDraw);
+                GL4.VertexAttribPointer(defaultShader.GetAttribute("vNormal"), 3, VertexAttribPointerType.Float, true, 0, 0);
+            }
+
+
             // Update model view matrices
             foreach (GameObject v in gameObjects)
             {
@@ -202,8 +279,9 @@ namespace Spark.GL
             // Buffer index data
             GL4.BindBuffer(BufferTarget.ElementArrayBuffer, ibo_elements);
             GL4.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(inddata.Length * sizeof(int)), inddata, BufferUsageHint.StaticDraw);
+            view = camera.GetViewMatrix();
 
-            updated = true;
+            updated = true; 
         }
 
         public GameObject GetObject(string name)
@@ -213,6 +291,7 @@ namespace Spark.GL
 
         public void AddObject(GameObject obj)
         {
+            obj.window = this;
             gameObjects.Add(obj);
         }
 
@@ -242,7 +321,7 @@ namespace Spark.GL
             return texID;
         }
 
-        int loadImage(string filename)
+        public int loadImage(string filename)
         {
             try
             {
@@ -254,5 +333,46 @@ namespace Spark.GL
                 return -1;
             }
         }
+
+        public void loadMaterials(String filename)
+        {
+            foreach (var mat in Material.LoadFromFile(filename))
+            {
+                if (!materials.ContainsKey(mat.Key))
+                {
+                    materials.Add(mat.Key, mat.Value);
+                }
+            }
+
+            // Load textures
+            foreach (Material mat in materials.Values)
+            {
+                if (File.Exists(mat.AmbientMap) && !textures.ContainsKey(mat.AmbientMap))
+                {
+                    textures.Add(mat.AmbientMap, loadImage(mat.AmbientMap));
+                }
+
+                if (File.Exists(mat.DiffuseMap) && !textures.ContainsKey(mat.DiffuseMap))
+                {
+                    textures.Add(mat.DiffuseMap, loadImage(mat.DiffuseMap));
+                }
+
+                if (File.Exists(mat.SpecularMap) && !textures.ContainsKey(mat.SpecularMap))
+                {
+                    textures.Add(mat.SpecularMap, loadImage(mat.SpecularMap));
+                }
+
+                if (File.Exists(mat.NormalMap) && !textures.ContainsKey(mat.NormalMap))
+                {
+                    textures.Add(mat.NormalMap, loadImage(mat.NormalMap));
+                }
+
+                if (File.Exists(mat.OpacityMap) && !textures.ContainsKey(mat.OpacityMap))
+                {
+                    textures.Add(mat.OpacityMap, loadImage(mat.OpacityMap));
+                }
+            }
+        }
+
     }
 }

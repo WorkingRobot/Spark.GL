@@ -28,6 +28,12 @@ namespace Spark.GL
         {
             X = Y = 0;
         }
+        internal Vec2(Vector2 vec)
+        {
+            X = vec.X;
+            Y = vec.Y;
+        }
+
         public static implicit operator Vector2(Vec2 d) => d.vector2;
         public static Vec2 operator +(Vec2 a, Vec2 b) => new Vec2(a.X + b.X, a.Y + b.Y);
         public static Vec2 operator -(Vec2 a, Vec2 b) => new Vec2(a.X - b.X, a.Y - b.Y);

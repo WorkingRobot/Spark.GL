@@ -2,9 +2,9 @@
 {
     public class Transform
     {
-        public Vec3 Position { get; set; }
-        public Vec3 Rotation { get; set; }
-        public Vec3 Scale { get; set; }
+        public Vec3 Position;
+        public Vec3 Rotation;
+        public Vec3 Scale;
         
         public Transform(Vec3 pos, Vec3 rot, Vec3 scale)
         {

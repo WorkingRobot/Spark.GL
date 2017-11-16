@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenTK;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,158 +8,360 @@ using System.Threading.Tasks;
 
 namespace Spark.GL
 {
+    public class FaceVertex
+    {
+        public Vector3 Position;
+        public Vector3 Normal;
+        public Vector2 TextureCoord;
+
+        public FaceVertex(Vector3 pos, Vector3 norm, Vector2 texcoord)
+        {
+            Position = pos;
+            Normal = norm;
+            TextureCoord = texcoord;
+        }
+    }
     public class Mesh
     {
         public static Mesh Cube;
-        public Vec3[] Vertices;
+        /*private Vec3[] _verts;
+        public Vec3[] Verticies {
+            set
+            {
+                _verts = value;
+                Center = CalculateCenter();
+                Size = CalculateSize();
+            }
+            get
+            {
+                return _verts;
+            }
+        }
         public Vec3[] Triangles;
         public Vec3[] Colors;
-        public Vec2[] Textures;
+        public Vec2[] Textures {
+            get {
+                List<Vector2> normals = new List<Vector2>();
+                foreach (var face in faces)
+                {
+                    normals.Add(face.Item1.TextureCoord);
+                    normals.Add(face.Item2.TextureCoord);
+                    normals.Add(face.Item3.TextureCoord);
+                }
+                return Array.ConvertAll(normals.ToArray(), item => new Vec2(item));
+            }
+        }
+        private Vector3[] _normals;
+        public Vec3[] Normals {
+            get
+            {
+                if (_normals.Length > 0) return Array.ConvertAll(_normals.ToArray(), item => new Vec3(item));
+                List<Vector3> normals = new List<Vector3>();
+                foreach (var face in faces)
+                {
+                    normals.Add(face.Item1.Normal);
+                    normals.Add(face.Item2.Normal);
+                    normals.Add(face.Item3.Normal);
+                }
+                return Array.ConvertAll(normals.ToArray(), item => new Vec3(item));
+            }
+            set
+            {
+                _normals = Array.ConvertAll(value, item => (Vector3)item);
+            }
+        }*/
+        public Vec3[] Verticies
+        {
+            get
+            {
+                List<Vec3> v = new List<Vec3>();
+                foreach (Tuple<FaceVertex,FaceVertex,FaceVertex> vert in faces)
+                {
+                    v.Add(new Vec3(vert.Item1.Position));
+                    v.Add(new Vec3(vert.Item2.Position));
+                    v.Add(new Vec3(vert.Item3.Position));
+                }
+                return v.ToArray();
+            }
+            set
+            {
+                for (int i = 0; i < faces.Count;++i)
+                {
+                    FaceVertex a = faces[i].Item1;
+                    FaceVertex b = faces[i].Item2;
+                    FaceVertex c = faces[i].Item3;
+                    a.Position = value[i * 3];
+                    b.Position = value[i * 3 + 1];
+                    c.Position = value[i * 3 + 2];
+                    faces[i] = new Tuple<FaceVertex, FaceVertex, FaceVertex>(a, b, c);
+                }
+            }
+        }
+        public Vec2[] Textures
+        {
+            get
+            {
+                List<Vec2> v = new List<Vec2>();
+                foreach (Tuple<FaceVertex, FaceVertex, FaceVertex> vert in faces)
+                {
+                    v.Add(new Vec2(vert.Item1.TextureCoord));
+                    v.Add(new Vec2(vert.Item2.TextureCoord));
+                    v.Add(new Vec2(vert.Item3.TextureCoord));
+                }
+                return v.ToArray();
+            }
+            set
+            {
+                for (int i = 0; i < faces.Count; ++i)
+                {
+                    FaceVertex a = faces[i].Item1;
+                    FaceVertex b = faces[i].Item2;
+                    FaceVertex c = faces[i].Item3;
+                    a.TextureCoord = value[i * 3];
+                    b.TextureCoord = value[i * 3 + 1];
+                    c.TextureCoord = value[i * 3 + 2];
+                    faces[i] = new Tuple<FaceVertex, FaceVertex, FaceVertex>(a, b, c);
+                }
+            }
+        }
+        public Vec3[] Normals
+        {
+            get
+            {
+                List<Vec3> v = new List<Vec3>();
+                foreach (Tuple<FaceVertex, FaceVertex, FaceVertex> vert in faces)
+                {
+                    v.Add(new Vec3(vert.Item1.Normal));
+                    v.Add(new Vec3(vert.Item2.Normal));
+                    v.Add(new Vec3(vert.Item3.Normal));
+                }
+                return v.ToArray();
+            }
+            set
+            {
+                for (int i = 0; i < faces.Count; ++i)
+                {
+                    FaceVertex a = faces[i].Item1;
+                    FaceVertex b = faces[i].Item2;
+                    FaceVertex c = faces[i].Item3;
+                    a.Normal = value[i * 3];
+                    b.Normal = value[i * 3 + 1];
+                    c.Normal = value[i * 3 + 2];
+                    faces[i] = new Tuple<FaceVertex, FaceVertex, FaceVertex>(a, b, c);
+                }
+            }
+        }
+        public Vec3[] Triangles
+        {
+            get
+            {
+                List<Vec3> list = new List<Vec3>();
+                int i = 0;
+                foreach(Tuple<FaceVertex,FaceVertex,FaceVertex> tri in faces)
+                {
+                    list.Add(new Vec3(i,i+1,i+2));
+                    i += 3;
+                }
+                return list.ToArray();
+            }
+        }
+
+        public List<Tuple<FaceVertex, FaceVertex, FaceVertex>> faces = new List<Tuple<FaceVertex, FaceVertex, FaceVertex>>();
+
+        //public Material material;
+
+        public Vec3 Center { get; private set; }
+        public Vec3 Size { get; private set; }
+
+        private Vec3 CalculateCenter()
+        {
+            float x, y, z;
+            x = y = z = 0;
+            foreach (Vec3 v in Verticies)
+            {
+                x += v.X;
+                y += v.Y;
+                z += v.Z;
+            }
+            return new Vec3(x / Verticies.Length, y / Verticies.Length, z / Verticies.Length);
+        }
+
+        private Vec3 CalculateSize()
+        {
+            // Capital are the max, lowercase are min
+            float X, Y, Z, x, y, z;
+            X = Y = Z = x = y = z = 0;
+            foreach (Vec3 v in Verticies)
+            {
+                if (v.X > X)
+                {
+                    X = v.X;
+                }
+                else if (v.X < x)
+                {
+                    x = v.X;
+                }
+                if (v.Y > Y)
+                {
+                    Y = v.Y;
+                }
+                else if (v.Y < y)
+                {
+                    y = v.Y;
+                }
+                if (v.Z > Z)
+                {
+                    Z = v.Z;
+                }
+                else if (v.Z < z)
+                {
+                    z = v.Z;
+                }
+            }
+            return new Vec3(X - x, Y - y, Z - z)/new Vec3(2,2,2);
+        }
 
         static Mesh()
         {
             Vec3[] verts = new Vec3[]
             {
-                new Vec3(-1.0f, -1.0f, -1.0f),
-                new Vec3(-1.0f, -1.0f, 1.0f),
-                new Vec3(-1.0f, 1.0f, 1.0f),
-                new Vec3(1.0f, 1.0f, -1.0f),
-                new Vec3(-1.0f, -1.0f, -1.0f),
-                new Vec3(-1.0f, 1.0f, -1.0f),
-                new Vec3(1.0f, -1.0f, 1.0f),
-                new Vec3(-1.0f, -1.0f, -1.0f),
-                new Vec3(1.0f, -1.0f, -1.0f),
-                new Vec3(1.0f, 1.0f, -1.0f),
-                new Vec3(1.0f, -1.0f, -1.0f),
-                new Vec3(-1.0f, -1.0f, -1.0f),
-                new Vec3(-1.0f, -1.0f, -1.0f),
-                new Vec3(-1.0f, 1.0f, 1.0f),
-                new Vec3(-1.0f, 1.0f, -1.0f),
-                new Vec3(1.0f, -1.0f, 1.0f),
-                new Vec3(-1.0f, -1.0f, 1.0f),
-                new Vec3(-1.0f, -1.0f, -1.0f),
-                new Vec3(-1.0f, 1.0f, 1.0f),
-                new Vec3(-1.0f, -1.0f, 1.0f),
-                new Vec3(1.0f, -1.0f, 1.0f),
-                new Vec3(1.0f, 1.0f, 1.0f),
-                new Vec3(1.0f, -1.0f, -1.0f),
-                new Vec3(1.0f, 1.0f, -1.0f),
-                new Vec3(1.0f, -1.0f, -1.0f),
-                new Vec3(1.0f, 1.0f, 1.0f),
-                new Vec3(1.0f, -1.0f, 1.0f),
-                new Vec3(1.0f, 1.0f, 1.0f),
-                new Vec3(1.0f, 1.0f, -1.0f),
-                new Vec3(-1.0f, 1.0f, -1.0f),
-                new Vec3(1.0f, 1.0f, 1.0f),
-                new Vec3(-1.0f, 1.0f, -1.0f),
-                new Vec3(-1.0f, 1.0f, 1.0f),
-                new Vec3(1.0f, 1.0f, 1.0f),
-                new Vec3(-1.0f, 1.0f, 1.0f),
-                new Vec3(1.0f, -1.0f, 1.0f)
+                //left
+                new Vec3(-0.5f, -0.5f,  -0.5f),
+                new Vec3(0.5f, 0.5f,  -0.5f),
+                new Vec3(0.5f, -0.5f,  -0.5f),
+                new Vec3(-0.5f, 0.5f,  -0.5f),
+
+                //back
+                new Vec3(0.5f, -0.5f,  -0.5f),
+                new Vec3(0.5f, 0.5f,  -0.5f),
+                new Vec3(0.5f, 0.5f,  0.5f),
+                new Vec3(0.5f, -0.5f,  0.5f),
+
+                //right
+                new Vec3(-0.5f, -0.5f,  0.5f),
+                new Vec3(0.5f, -0.5f,  0.5f),
+                new Vec3(0.5f, 0.5f,  0.5f),
+                new Vec3(-0.5f, 0.5f,  0.5f),
+
+                //top
+                new Vec3(0.5f, 0.5f,  -0.5f),
+                new Vec3(-0.5f, 0.5f,  -0.5f),
+                new Vec3(0.5f, 0.5f,  0.5f),
+                new Vec3(-0.5f, 0.5f,  0.5f),
+
+                //front
+                new Vec3(-0.5f, -0.5f,  -0.5f),
+                new Vec3(-0.5f, 0.5f,  0.5f),
+                new Vec3(-0.5f, 0.5f,  -0.5f),
+                new Vec3(-0.5f, -0.5f,  0.5f),
+
+                //bottom
+                new Vec3(-0.5f, -0.5f,  -0.5f),
+                new Vec3(0.5f, -0.5f,  -0.5f),
+                new Vec3(0.5f, -0.5f,  0.5f),
+                new Vec3(-0.5f, -0.5f,  0.5f)
             };
             Vec3[] triangles = new Vec3[]
             {
-                new Vec3(0,1,2),
-                new Vec3(3,4,5),
-                new Vec3(6,7,8),
-                new Vec3(9,10,11),
-                new Vec3(12,13,14),
-                new Vec3(15,16,17),
-                new Vec3(18,19,20),
-                new Vec3(21,22,23),
-                new Vec3(24,25,26),
-                new Vec3(27,28,29),
-                new Vec3(30,31,32),
-                new Vec3(33,34,35)
+                //left
+                new Vec3(0,1,2),new Vec3(0,3,1),
+
+                //back
+                new Vec3(4,5,6),new Vec3(4,6,7),
+
+                //right
+                new Vec3(8,9,10),new Vec3(8,10,11),
+
+                //top
+                new Vec3(13,14,12),new Vec3(13,15,14),
+
+                //front
+                new Vec3(16,17,18),new Vec3(16,19,17),
+
+                //bottom 
+                new Vec3(20,21,22),new Vec3(20,22,23)
             };
             Vec3[] colors = new Vec3[]
             {
-                new Vec3(0.583f, 0.771f, 0.014f),
-                new Vec3(0.609f, 0.115f, 0.436f),
-                new Vec3(0.327f, 0.483f, 0.844f),
-                new Vec3(0.822f, 0.569f, 0.201f),
-                new Vec3(0.435f, 0.602f, 0.223f),
-                new Vec3(0.310f, 0.747f, 0.185f),
-                new Vec3(0.597f, 0.770f, 0.761f),
-                new Vec3(0.559f, 0.436f, 0.730f),
-                new Vec3(0.359f, 0.583f, 0.152f),
-                new Vec3(0.483f, 0.596f, 0.789f),
-                new Vec3(0.559f, 0.861f, 0.639f),
-                new Vec3(0.195f, 0.548f, 0.859f),
-                new Vec3(0.014f, 0.184f, 0.576f),
-                new Vec3(0.771f, 0.328f, 0.970f),
-                new Vec3(0.406f, 0.615f, 0.116f),
-                new Vec3(0.676f, 0.977f, 0.133f),
-                new Vec3(0.971f, 0.572f, 0.833f),
-                new Vec3(0.140f, 0.616f, 0.489f),
-                new Vec3(0.997f, 0.513f, 0.064f),
-                new Vec3(0.945f, 0.719f, 0.592f),
-                new Vec3(0.543f, 0.021f, 0.978f),
-                new Vec3(0.279f, 0.317f, 0.505f),
-                new Vec3(0.167f, 0.620f, 0.077f),
-                new Vec3(0.347f, 0.857f, 0.137f),
-                new Vec3(0.055f, 0.953f, 0.042f),
-                new Vec3(0.714f, 0.505f, 0.345f),
-                new Vec3(0.783f, 0.290f, 0.734f),
-                new Vec3(0.722f, 0.645f, 0.174f),
-                new Vec3(0.302f, 0.455f, 0.848f),
-                new Vec3(0.225f, 0.587f, 0.040f),
-                new Vec3(0.517f, 0.713f, 0.338f),
-                new Vec3(0.053f, 0.959f, 0.120f),
-                new Vec3(0.393f, 0.621f, 0.362f),
-                new Vec3(0.673f, 0.211f, 0.457f),
-                new Vec3(0.820f, 0.883f, 0.371f),
-                new Vec3(0.982f, 0.099f, 0.879f)
+                //left
+                new Vec3(0, 0,  0),
+                new Vec3(0, 0,  0),
+                new Vec3(0, 0,  0),
+                new Vec3(0, 0,  0),
+
+                //back
+                new Vec3(0, 0,  0),
+                new Vec3(0, 0,  0),
+                new Vec3(0, 0,  0),
+                new Vec3(0, 0,  0),
+
+                //right
+                new Vec3(0, 0,  0),
+                new Vec3(0, 0,  0),
+                new Vec3(0, 0,  0),
+                new Vec3(0, 0,  0),
+
+                //top
+                new Vec3(0, 0,  0),
+                new Vec3(0, 0,  0),
+                new Vec3(0, 0,  0),
+                new Vec3(0, 0,  0),
+
+                //front
+                new Vec3(0, 0,  0),
+                new Vec3(0, 0,  0),
+                new Vec3(0, 0,  0),
+                new Vec3(0, 0,  0),
+
+                //bottom
+                new Vec3(0, 0,  0),
+                new Vec3(0, 0,  0),
+                new Vec3(0, 0,  0),
+                new Vec3(0, 0,  0)
             };
             Vec2[] textures = new Vec2[]
             {
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2(),
-                new Vec2()
+                // left
+                new Vec2(0.0f, 0.0f),
+                new Vec2(-1.0f, 1.0f),
+                new Vec2(-1.0f, 0.0f),
+                new Vec2(0.0f, 1.0f),
+ 
+                // back
+                new Vec2(0.0f, 0.0f),
+                new Vec2(0.0f, 1.0f),
+                new Vec2(-1.0f, 1.0f),
+                new Vec2(-1.0f, 0.0f),
+ 
+                // right
+                new Vec2(-1.0f, 0.0f),
+                new Vec2(0.0f, 0.0f),
+                new Vec2(0.0f, 1.0f),
+                new Vec2(-1.0f, 1.0f),
+ 
+                // top
+                new Vec2(0.0f, 0.0f),
+                new Vec2(0.0f, 1.0f),
+                new Vec2(-1.0f, 0.0f),
+                new Vec2(-1.0f, 1.0f),
+ 
+                // front
+                new Vec2(0.0f, 0.0f),
+                new Vec2(1.0f, 1.0f),
+                new Vec2(0.0f, 1.0f),
+                new Vec2(1.0f, 0.0f),
+ 
+                // bottom
+                new Vec2(0.0f, 0.0f),
+                new Vec2(0.0f, 1.0f),
+                new Vec2(-1.0f, 1.0f),
+                new Vec2(-1.0f, 0.0f)
             };
             Cube = new Mesh(verts, triangles, colors, textures);
         }
 
-        public Mesh(Vec3[] v, Vec3[] t, Vec3[] c, Vec2[] T)
-        {
-            Vertices = v;
-            Triangles = t;
-            Colors = c;
-            Textures = T;
-        }
+        public Mesh() { }
+
         public Mesh(string filename, FileType type)
         {
             Mesh m = null;
@@ -167,10 +370,23 @@ namespace Spark.GL
                 case FileType.OBJ: m = ObjReader.Read(File.ReadAllText(filename)); break;
                 default: break;
             }
-            Vertices = m.Vertices;
-            Triangles = m.Triangles;
-            Textures = m.Textures;
-            Colors = m.Colors;
+            faces = m.faces;
+        }
+        public Mesh(Vec3[] verts, Vec3[] tris, Vec3[] colors, Vec2[] tex)
+        {
+            List<Tuple<FaceVertex, FaceVertex, FaceVertex>> _faces = new List<Tuple<FaceVertex, FaceVertex, FaceVertex>>();
+            foreach (Vec3 triangle in tris)
+            {
+                _faces.Add(new Tuple<FaceVertex,FaceVertex,FaceVertex>(
+                    new FaceVertex(verts[(int)triangle.X], new Vec3(), tex[(int)triangle.X]),
+                    new FaceVertex(verts[(int)triangle.Y], new Vec3(), tex[(int)triangle.Y]),
+                    new FaceVertex(verts[(int)triangle.Z], new Vec3(), tex[(int)triangle.Z])
+                    ));
+            }
+            faces = _faces;
+            CalculateNormals();
+            Center = CalculateCenter();
+            Size = CalculateSize();
         }
         public Mesh(string filename) : this(filename, TypeFromFile(filename)) { }
         private static FileType TypeFromFile(string filename)
@@ -184,7 +400,33 @@ namespace Spark.GL
         public enum FileType {
             OBJ
         }
-        
+
+        public void CalculateNormals()
+        {
+            Vector3[] normals = new Vector3[Verticies.Length];
+            Vector3[] verts = Array.ConvertAll(Verticies, item => (Vector3)item);
+            int[] inds = TrianglesToInds();
+
+            // Compute normals for each face
+            for (int i = 0; i < inds.Length; i += 3)
+            {
+                Vector3 v1 = verts[inds[i]];
+                Vector3 v2 = verts[inds[i + 1]];
+                Vector3 v3 = verts[inds[i + 2]];
+
+                // The normal is the cross product of two sides of the triangle
+                normals[inds[i]] += Vector3.Cross(v2 - v1, v3 - v1);
+                normals[inds[i + 1]] += Vector3.Cross(v2 - v1, v3 - v1);
+                normals[inds[i + 2]] += Vector3.Cross(v2 - v1, v3 - v1);
+            }
+
+            for (int i = 0; i < Normals.Length; i++)
+            {
+                normals[i] = normals[i].Normalized();
+            }
+
+            Normals = Array.ConvertAll(normals, item => new Vec3(item));
+        }
 
         internal int[] TrianglesToInds(int offset=0)
         {

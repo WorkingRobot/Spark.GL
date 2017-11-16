@@ -5,12 +5,12 @@ namespace Spark.GL
 {
     public class MeshRenderer : Component
     {
-        MeshFilter f;
+        internal MeshFilter f;
         internal Mesh mesh { get { return f.mesh; } }
         internal Matrix4 ModelMatrix;
         internal Matrix4 ViewProjectionMatrix = Matrix4.Identity;
         internal Matrix4 ModelViewProjectionMatrix = Matrix4.Identity;
-        public override void Awake()
+        public override void Load()
         {
             f = gameObject.GetComponent<MeshFilter>();
             if (f == null)

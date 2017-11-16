@@ -176,8 +176,9 @@ namespace Spark.GL
 
         public Shader(string vshader, string fshader, bool fromFile = false)
         {
+            Console.WriteLine("creating \"program\"");
             ProgramID = GL4.CreateProgram();
-
+            Console.WriteLine("Loading shaders from file");
             if (fromFile)
             {
                 LoadShaderFromFile(vshader, ShaderType.VertexShader);
@@ -188,9 +189,11 @@ namespace Spark.GL
                 LoadShaderFromString(vshader, ShaderType.VertexShader);
                 LoadShaderFromString(fshader, ShaderType.FragmentShader);
             }
-
+            Console.WriteLine("linking");
             Link();
+            Console.WriteLine("genbuffers");
             GenBuffers();
+            Console.WriteLine("shader finish.");
         }
 
         public class UniformInfo

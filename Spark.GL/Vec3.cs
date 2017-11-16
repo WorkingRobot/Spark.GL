@@ -41,6 +41,7 @@ namespace Spark.GL
         }
 
         public static implicit operator Vector3(Vec3 d) => d.vector3;
+        public static implicit operator string(Vec3 d) => String.Format("{0}, {1}, {2}",d.X,d.Y,d.Z);
         public static Vec3 operator +(Vec3 a, Vec3 b) => new Vec3(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
         public static Vec3 operator -(Vec3 a, Vec3 b) => new Vec3(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
         public static Vec3 operator *(Vec3 a, Vec3 b) => new Vec3(a.X * b.X, a.Y * b.Y, a.Z * b.Z);

@@ -2,7 +2,8 @@
 {
     public interface IBaseWindow
     {
-        void Start();
+        void Wake();
+        void Run();
         void Exit();
         GameObject[] GetAllObjects();
         GameObject GetObject(string name);

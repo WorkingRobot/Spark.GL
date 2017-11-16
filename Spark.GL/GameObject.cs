@@ -8,7 +8,7 @@ namespace Spark.GL
         public string Name;
         public bool Active;
         public Transform transform;
-        public Material material = new Material();
+        internal Window window;
         internal List<Component> components;
 
         public T AddComponent<T>() where T : Component, new()
@@ -17,6 +17,7 @@ namespace Spark.GL
             {
                 T comp = new T();
                 comp.gameObject = this;
+                comp.window = window;
                 components.Add(comp);
                 return comp;
             }
@@ -57,6 +58,7 @@ namespace Spark.GL
             Active = true;
             children = new List<GameObject>();
             parent = null;
+            Window.window.AddObject(this);
         }
     }
 }
