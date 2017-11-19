@@ -47,7 +47,6 @@ namespace Spark.GL
                 if (mc == null) continue;
                 if (mc.IsCollision(gameObject))
                 {
-                    Console.WriteLine("collision");
                     rb.velocity.Y = (gameObject.transform.Position.Y+mesh.Size.Y)-(o.transform.Position.Y+mc.mesh.Size.Y);
                 }
             }

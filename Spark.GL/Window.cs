@@ -78,7 +78,6 @@ namespace Spark.GL
 
         public void Wake()
         {
-            Console.WriteLine("opening gw");
             gw = new GameWindow(Width, Height, GraphicsMode.Default, Title);
             GL4.ClearColor(Color4.CornflowerBlue);
             
@@ -125,7 +124,6 @@ namespace Spark.GL
                 if (r == null) continue;
                 GL4.BindTexture(TextureTarget.Texture2D, r.f.material.TextureID);
                 GL4.UniformMatrix4(defaultShader.GetUniform("modelview"), false, ref r.ModelViewProjectionMatrix);
-                //Console.WriteLine(r.f.material.TextureID);
                 if (defaultShader.GetAttribute("maintexture") != -1)
                 {
                     GL4.Uniform1(defaultShader.GetAttribute("maintexture"), r.f.material.TextureID);
@@ -234,18 +232,12 @@ namespace Spark.GL
         private void Gw_Load(object sender, EventArgs e)
         {
             GL4.GenBuffers(1, out ibo_elements);
-            Console.WriteLine("shader init");
             shaders["color"].GLLoad();
-            Console.WriteLine("tex init");
             shaders["tex"].GLLoad();
-            Console.WriteLine("lit init");
             shaders["lit"].GLLoad();
-            Console.WriteLine("multilit init");
             shaders["multilit"].GLLoad();
-            Console.WriteLine("advlit init");
             shaders["advlit"].GLLoad();
             defaultShader = shaders["advlit"];
-            Console.WriteLine("shader finish init. go on. wake finish");
             woken = true;
             OpenTK.Input.Mouse.SetPosition(gw.Bounds.Left + gw.Bounds.Width / 2, gw.Bounds.Top + gw.Bounds.Height / 2);
             gw.RenderFrame += Gw_RenderFrame;
