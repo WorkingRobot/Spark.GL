@@ -11,6 +11,9 @@ namespace Spark.GL
     public class Shader
     {
 
+        string cachedVS;
+        string cachedFS;
+
         public int ProgramID = -1;
         public int VShaderID = -1;
         public int FShaderID = -1;
@@ -47,6 +50,21 @@ namespace Spark.GL
             }
         }
 
+        private void CacheFile(string filename, ShaderType type)
+        {
+            using (StreamReader sr = new StreamReader(filename))
+            {
+                if (type == ShaderType.VertexShader)
+                {
+                    cachedVS = sr.ReadToEnd();
+                }
+                else if (type == ShaderType.FragmentShader)
+                {
+                    cachedFS = sr.ReadToEnd();
+                }
+            }
+        }
+
         public void LoadShaderFromFile(string filename, ShaderType type)
         {
             using (StreamReader sr = new StreamReader(filename))
@@ -65,13 +83,14 @@ namespace Spark.GL
 
         public void Link()
         {
+            Console.WriteLine("linking...");
             GL4.LinkProgram(ProgramID);
-
+            Console.WriteLine("'linked'");
             Console.WriteLine(GL4.GetProgramInfoLog(ProgramID));
-
+            Console.WriteLine("proginfo log ^^");
             GL4.GetProgram(ProgramID, GetProgramParameterName.ActiveAttributes, out AttributeCount);
             GL4.GetProgram(ProgramID, GetProgramParameterName.ActiveUniforms, out UniformCount);
-
+            Console.WriteLine("get programs");
             for (int i = 0; i < AttributeCount; i++)
             {
                 AttributeInfo info = new AttributeInfo();
@@ -85,20 +104,27 @@ namespace Spark.GL
                 info.address = GL4.GetAttribLocation(ProgramID, info.name);
                 Attributes.Add(name.ToString(), info);
             }
+            Console.WriteLine("attribs ^ :)");
 
             for (int i = 0; i < UniformCount; i++)
             {
+                Console.WriteLine("start " + i);
                 UniformInfo info = new UniformInfo();
+                Console.WriteLine("uniform maked");
                 int length = 0;
 
                 StringBuilder name = new StringBuilder();
-
+                //Console.WriteLine("string maked");
+                
                 GL4.GetActiveUniform(ProgramID, i, 256, out length, out info.size, out info.type, name);
+                Console.WriteLine("gl4 uniform");
 
                 info.name = name.ToString();
                 Uniforms.Add(name.ToString(), info);
                 info.address = GL4.GetUniformLocation(ProgramID, info.name);
+                Console.WriteLine("do stuff "+info.name);
             }
+            Console.WriteLine("uniforms ^^");
         }
 
         public void GenBuffers()
@@ -174,21 +200,19 @@ namespace Spark.GL
 
 
 
-        public Shader(string vshader, string fshader, bool fromFile = false)
+        public Shader(string vshader, string fshader)
+        {
+            CacheFile(vshader, ShaderType.VertexShader);
+            CacheFile(fshader, ShaderType.FragmentShader);
+        }
+
+        public void GLLoad()
         {
             Console.WriteLine("creating \"program\"");
             ProgramID = GL4.CreateProgram();
             Console.WriteLine("Loading shaders from file");
-            if (fromFile)
-            {
-                LoadShaderFromFile(vshader, ShaderType.VertexShader);
-                LoadShaderFromFile(fshader, ShaderType.FragmentShader);
-            }
-            else
-            {
-                LoadShaderFromString(vshader, ShaderType.VertexShader);
-                LoadShaderFromString(fshader, ShaderType.FragmentShader);
-            }
+            LoadShaderFromString(cachedVS, ShaderType.VertexShader);
+            LoadShaderFromString(cachedFS, ShaderType.FragmentShader);
             Console.WriteLine("linking");
             Link();
             Console.WriteLine("genbuffers");

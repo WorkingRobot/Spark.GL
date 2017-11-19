@@ -15,7 +15,8 @@ namespace Spark.GL
         internal static Window window;
         Camera camera;
         List<GameObject> gameObjects = new List<GameObject>();
-        Light activeLight = new Light(new Vec3(-5,5,0), new Vec3(1f, 0.1f, 0.1f));
+        List<Light> lights = new List<Light>();
+        const int MAX_LIGHTS = 5;
         Matrix4 view = Matrix4.Identity;
         public Dictionary<string, int> textures = new Dictionary<string, int>();
         public Dictionary<string, Shader> shaders = new Dictionary<string, Shader>();
@@ -35,6 +36,13 @@ namespace Spark.GL
             Width = width;
             Height = height;
             Title = title;
+            lights.Add(new Light(new Vec3(5, 0, 0), new Vec3(0.9f, 0.1f, 0.1f)));
+            lights.Add(new Light(new Vec3(-5, 0, 0), new Vec3(0.1f, 0.9f, 0.1f)));
+            lights.Add(new Light(new Vec3(0, 5, 0), new Vec3(0.1f, 0.1f, 0.9f)));
+            shaders.Add("color", new Shader("C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/ColorShader/vs.glsl", "C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/ColorShader/fs.glsl"));
+            shaders.Add("tex", new Shader("C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/TexShader/vs.glsl", "C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/TexShader/fs.glsl"));
+            shaders.Add("lit", new Shader("C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/LitShader/vs.glsl", "C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/LitShader/fs.glsl"));
+            shaders.Add("multilit", new Shader("C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/MultiLitShader/vs.glsl", "C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/MultiLitShader/fs.glsl"));
         }
         public void Exit()
         {
@@ -73,7 +81,6 @@ namespace Spark.GL
             GL4.ClearColor(Color4.CornflowerBlue);
             
             gw.Load += Gw_Load;
-            
         }
 
         public void Run()
@@ -121,6 +128,7 @@ namespace Spark.GL
                 {
                     GL4.Uniform1(defaultShader.GetAttribute("maintexture"), r.f.material.TextureID);
                 }
+
                 if (defaultShader.GetUniform("view") != -1)
                 {
                     GL4.UniformMatrix4(defaultShader.GetUniform("view"), false, ref view);
@@ -153,22 +161,46 @@ namespace Spark.GL
 
                 if (defaultShader.GetUniform("light_position") != -1)
                 {
-                    GL4.Uniform3(defaultShader.GetUniform("light_position"), ref activeLight.Position);
+                    GL4.Uniform3(defaultShader.GetUniform("light_position"), ref lights[0].Position);
                 }
 
                 if (defaultShader.GetUniform("light_color") != -1)
                 {
-                    GL4.Uniform3(defaultShader.GetUniform("light_color"), ref activeLight.Color);
+                    GL4.Uniform3(defaultShader.GetUniform("light_color"), ref lights[0].Color);
                 }
 
                 if (defaultShader.GetUniform("light_diffuseIntensity") != -1)
                 {
-                    GL4.Uniform1(defaultShader.GetUniform("light_diffuseIntensity"), activeLight.DiffuseIntensity);
+                    GL4.Uniform1(defaultShader.GetUniform("light_diffuseIntensity"), lights[0].DiffuseIntensity);
                 }
 
                 if (defaultShader.GetUniform("light_ambientIntensity") != -1)
                 {
-                    GL4.Uniform1(defaultShader.GetUniform("light_ambientIntensity"), activeLight.AmbientIntensity);
+                    GL4.Uniform1(defaultShader.GetUniform("light_ambientIntensity"), lights[0].AmbientIntensity);
+                }
+
+
+                for (int i = 0; i < Math.Min(lights.Count, MAX_LIGHTS); i++)
+                {
+                    if (defaultShader.GetUniform("lights[" + i + "].position") != -1)
+                    {
+                        GL4.Uniform3(defaultShader.GetUniform("lights[" + i + "].position"), ref lights[i].Position);
+                    }
+
+                    if (defaultShader.GetUniform("lights[" + i + "].color") != -1)
+                    {
+                        GL4.Uniform3(defaultShader.GetUniform("lights[" + i + "].color"), ref lights[i].Color);
+                    }
+
+                    if (defaultShader.GetUniform("lights[" + i + "].diffuseIntensity") != -1)
+                    {
+                        GL4.Uniform1(defaultShader.GetUniform("lights[" + i + "].diffuseIntensity"), lights[i].DiffuseIntensity);
+                    }
+
+                    if (defaultShader.GetUniform("lights[" + i + "].ambientIntensity") != -1)
+                    {
+                        GL4.Uniform1(defaultShader.GetUniform("lights[" + i + "].ambientIntensity"), lights[i].AmbientIntensity);
+                    }
                 }
 
                 GL4.DrawElements(BeginMode.Triangles, r.mesh.Triangles.Length*3, DrawElementsType.UnsignedInt, indiceat * sizeof(uint));
@@ -184,15 +216,19 @@ namespace Spark.GL
 
         private void Gw_Load(object sender, EventArgs e)
         {
-            OpenTK.Input.Mouse.SetPosition(gw.Bounds.Left + gw.Bounds.Width / 2, gw.Bounds.Top + gw.Bounds.Height / 2);
             GL4.GenBuffers(1, out ibo_elements);
-            //System.Threading.SpinWait.SpinUntil(() => loaded);
-            //Console.WriteLine("shader init");
-            //defaultShader = new Shader("C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/LitShader/vs.glsl", "C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/LitShader/fs.glsl", true);
-            defaultShader = new Shader("C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/TexShader/vs.glsl", "C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/TexShader/fs.glsl", true);
+            Console.WriteLine("shader init");
+            //shaders["color"].GLLoad();
+            Console.WriteLine("tex init");
+            //shaders["tex"].GLLoad();
+            Console.WriteLine("lit init");
+            //shaders["lit"].GLLoad();
+            Console.WriteLine("multilit init");
+            shaders["multilit"].GLLoad();
+            defaultShader = shaders["multilit"];
             Console.WriteLine("shader finish init. go on. wake finish");
-            
             woken = true;
+            OpenTK.Input.Mouse.SetPosition(gw.Bounds.Left + gw.Bounds.Width / 2, gw.Bounds.Top + gw.Bounds.Height / 2);
             gw.RenderFrame += Gw_RenderFrame;
             gw.UpdateFrame += Gw_UpdateFrame;
         }
@@ -213,7 +249,6 @@ namespace Spark.GL
             List<Vector3> colors = new List<Vector3>();
             List<Vector2> texcoords = new List<Vector2>();
             List<Vector3> normals = new List<Vector3>();
-
             int vertcount = 0;
             foreach (GameObject go in gameObjects)
             {

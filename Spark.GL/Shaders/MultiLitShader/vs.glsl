@@ -15,10 +15,10 @@ uniform mat4 view;
 void
 main()
 {
-	gl_Position = modelview * vec4(vPosition, 1.0);
-	f_texcoord = texcoord;
+ gl_Position = modelview * vec4(vPosition, 1.0);
+ f_texcoord = texcoord;
 
-	mat3 normMatrix = transpose(inverse(mat3(model)));
-	v_norm = normMatrix * vNormal;
-	v_pos = (model * vec4(vPosition, 1.0)).xyz;
+ mat3 normMatrix = transpose(inverse(mat3(model)));
+ v_norm = normMatrix * vNormal;
+ v_pos = (model * vec4(vPosition, 1.0)).xyz;
 }
