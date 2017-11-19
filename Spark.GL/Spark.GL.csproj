@@ -82,6 +82,8 @@
     <None Include="packages.config" />
     <None Include="Shaders\LitShader\fs.glsl" />
     <None Include="Shaders\LitShader\vs.glsl" />
+    <None Include="Shaders\AdvLitShader\fs.glsl" />
+    <None Include="Shaders\AdvLitShader\vs.glsl" />
     <None Include="Shaders\TexShader\fs.glsl" />
     <None Include="Shaders\TexShader\vs.glsl" />
     <None Include="Shaders\ColorShader\vs.glsl" />

@@ -113,7 +113,7 @@ namespace Spark.GL
                 Console.WriteLine("uniform maked");
                 int length = 0;
 
-                StringBuilder name = new StringBuilder();
+                StringBuilder name = new StringBuilder(256);
                 //Console.WriteLine("string maked");
                 
                 GL4.GetActiveUniform(ProgramID, i, 256, out length, out info.size, out info.type, name);

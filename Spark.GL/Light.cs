@@ -1,9 +1,4 @@
 ﻿using OpenTK;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Spark.GL
 {
@@ -16,12 +11,37 @@ namespace Spark.GL
 
             DiffuseIntensity = diffuseintensity;
             AmbientIntensity = ambientintensity;
+
+            Type = LightType.Point;
+            Direction = new Vec3(0, 0, 1);
+            ConeAngle = 15.0f;
         }
 
-        public Vector3 Position;
-        public Vector3 Color = new Vector3();
-        public float DiffuseIntensity = 1.0f;
-        public float AmbientIntensity = 0.1f;
+        public Vec3 Position
+        {
+            get { return new Vec3(position); }
+            set { position = value; }
+        }
+        public Vec3 Color
+        {
+            get { return new Vec3(color); }
+            set { color = value; }
+        }
+        public float DiffuseIntensity;
+        public float AmbientIntensity;
+
+        public LightType Type;
+        public Vec3 Direction
+        {
+            get { return new Vec3(direction); }
+            set { direction = value; }
+        }
+        public float ConeAngle;
+
+        internal Vector3 position;
+        internal Vector3 color;
+        internal Vector3 direction;
     }
 
+    enum LightType { Point, Spot, Directional }
 }
