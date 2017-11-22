@@ -10,6 +10,8 @@ namespace Spark.GL
         internal Matrix4 ModelMatrix;
         internal Matrix4 ViewProjectionMatrix = Matrix4.Identity;
         internal Matrix4 ModelViewProjectionMatrix = Matrix4.Identity;
+        internal bool viewable = true;
+
         public override void Load()
         {
             f = gameObject.GetComponent<MeshFilter>();

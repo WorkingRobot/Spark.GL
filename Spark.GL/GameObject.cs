@@ -6,7 +6,7 @@ namespace Spark.GL
     public class GameObject
     {
         public string Name;
-        public bool Active;
+        public bool Active = true;
         public Transform transform;
         internal Window window;
         internal List<Component> components;
@@ -38,7 +38,10 @@ namespace Spark.GL
         internal GameObject parent;
         public void SetParent(GameObject newParent)
         {
-            parent.children.Remove(this);
+            if (parent != null)
+            {
+                parent.children.Remove(this);
+            }
             newParent.children.Add(this);
             parent = newParent;
         }
@@ -47,8 +50,12 @@ namespace Spark.GL
             return parent;
         }
 
-        internal List<GameObject> children;
+        internal List<GameObject> children = new List<GameObject>();
         
+        public GameObject[] GetChildren()
+        {
+            return children.ToArray();
+        }
 
         public GameObject(string name)
         {
@@ -59,6 +66,11 @@ namespace Spark.GL
             children = new List<GameObject>();
             parent = null;
             Window.window.AddObject(this);
+        }
+
+        public void Delete()
+        {
+            Window.window.RemoveObject(this);
         }
     }
 }

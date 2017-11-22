@@ -22,16 +22,16 @@ namespace Spark.GL
         {
             Vector3 lookat = new Vector3();
 
-            lookat.X = (float)(Math.Sin((float)Rotation.X) * Math.Cos((float)Rotation.Y));
-            lookat.Y = (float)Math.Sin((float)Rotation.Y);
-            lookat.Z = (float)(Math.Cos((float)Rotation.X) * Math.Cos((float)Rotation.Y));
+            lookat.X = (float)(Math.Sin(Rotation.X) * Math.Cos(Rotation.Y));
+            lookat.Y = (float)Math.Sin(Rotation.Y);
+            lookat.Z = (float)(Math.Cos(Rotation.X) * Math.Cos(Rotation.Y));
 
             return Matrix4.LookAt(Position, Position + lookat, Vector3.UnitY);
         }
         public void Move(float x, float z, float y)
         {
             Vector3 offset = new Vector3();
-            Vector3 forward = new Vector3((float)Math.Sin((float)Rotation.X), 0, (float)Math.Cos((float)Rotation.X));
+            Vector3 forward = new Vector3((float)Math.Sin(Rotation.X), 0, (float)Math.Cos(Rotation.X));
             Vector3 right = new Vector3(-forward.Z, 0, forward.X);
 
             offset += x * right;

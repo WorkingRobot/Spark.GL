@@ -9,9 +9,9 @@ namespace Spark.GL
     public class Material
     {
         public int TextureID;
-        public Vector3 AmbientColor = new Vector3();
-        public Vector3 DiffuseColor = new Vector3();
-        public Vector3 SpecularColor = new Vector3();
+        internal Vector3 ambientColor = new Vector3();
+        internal Vector3 diffuseColor = new Vector3();
+        internal Vector3 specularColor = new Vector3();
         public float SpecularExponent = 1;
         public float Opacity = 1.0f;
 
@@ -21,11 +21,45 @@ namespace Spark.GL
         public String OpacityMap = "";
         public String NormalMap = "";
 
+        public Vec3 AmbientColor
+        {
+            get
+            {
+                return new Vec3(ambientColor);
+            }
+            set
+            {
+                ambientColor = value;
+            }
+        }
+        public Vec3 DiffuseColor
+        {
+            get
+            {
+                return new Vec3(diffuseColor);
+            }
+            set
+            {
+                diffuseColor = value;
+            }
+        }
+        public Vec3 SpecularColor
+        {
+            get
+            {
+                return new Vec3(specularColor);
+            }
+            set
+            {
+                ambientColor = value;
+            }
+        }
+
         public Material()
         {
         }
 
-        public Material(Vector3 ambient, Vector3 diffuse, Vector3 specular, float specexponent = 1.0f, float opacity = 1.0f)
+        public Material(Vec3 ambient, Vec3 diffuse, Vec3 specular, float specexponent = 1.0f, float opacity = 1.0f)
         {
             AmbientColor = ambient;
             DiffuseColor = diffuse;
@@ -143,7 +177,7 @@ namespace Spark.GL
                     success |= float.TryParse(colorparts[1], out vec.Y);
                     success |= float.TryParse(colorparts[2], out vec.Z);
 
-                    output.AmbientColor = new Vector3(float.Parse(colorparts[0]), float.Parse(colorparts[1]), float.Parse(colorparts[2]));
+                    output.AmbientColor = new Vec3(float.Parse(colorparts[0]), float.Parse(colorparts[1]), float.Parse(colorparts[2]));
 
                     // If any of the parses failed, report the error
                     if (!success)
@@ -170,7 +204,7 @@ namespace Spark.GL
                     success |= float.TryParse(colorparts[1], out vec.Y);
                     success |= float.TryParse(colorparts[2], out vec.Z);
 
-                    output.DiffuseColor = new Vector3(float.Parse(colorparts[0]), float.Parse(colorparts[1]), float.Parse(colorparts[2]));
+                    output.DiffuseColor = new Vec3(float.Parse(colorparts[0]), float.Parse(colorparts[1]), float.Parse(colorparts[2]));
 
                     // If any of the parses failed, report the error
                     if (!success)
@@ -197,7 +231,7 @@ namespace Spark.GL
                     success |= float.TryParse(colorparts[1], out vec.Y);
                     success |= float.TryParse(colorparts[2], out vec.Z);
 
-                    output.SpecularColor = new Vector3(float.Parse(colorparts[0]), float.Parse(colorparts[1]), float.Parse(colorparts[2]));
+                    output.SpecularColor = new Vec3(float.Parse(colorparts[0]), float.Parse(colorparts[1]), float.Parse(colorparts[2]));
 
                     // If any of the parses failed, report the error
                     if (!success)

@@ -55,6 +55,7 @@
     <Compile Include="Components\CubeCollider.cs" />
     <Compile Include="Components\MeshCollider.cs" />
     <Compile Include="Components\Rigidbody.cs" />
+    <Compile Include="FrustumCullingHelper.cs" />
     <Compile Include="Light.cs" />
     <Compile Include="OrthoCamera.cs" />
     <Compile Include="PerspectiveCamera.cs" />

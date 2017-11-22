@@ -27,15 +27,21 @@ namespace Spark.GL
         private bool woken = false;
         private bool updated;
 
-        string Title;
+        public string Title
+        {
+            get { return gw.Title; }
+            set { gw.Title = value; }
+        }
+        string _temptitle;
         public int Width { private set; get; }
         public int Height { private set; get; }
+        public float FrameRate { private set; get; }
         public Window(int width, int height, string title = "")
         {
             window = this;
             Width = width;
             Height = height;
-            Title = title;
+            _temptitle = title;
             Light sunLight = new Light(new Vec3(-5,-3,0), new Vec3(0.7f, 0.7f, 0.7f));
             sunLight.Type = LightType.Directional;
             sunLight.Direction = new Vec3(sunLight.position.Normalized());
@@ -78,7 +84,8 @@ namespace Spark.GL
 
         public void Wake()
         {
-            gw = new GameWindow(Width, Height, GraphicsMode.Default, Title);
+            gw = new GameWindow(Width, Height, GraphicsMode.Default, _temptitle);
+            Title = _temptitle;
             GL4.ClearColor(Color4.CornflowerBlue);
             
             gw.Load += Gw_Load;
@@ -88,12 +95,13 @@ namespace Spark.GL
         {
             foreach (GameObject go in gameObjects)
             {
+                if (!go.Active) continue;
                 foreach (Component component in go.components)
                 {
                     component.Load();
                 }
             }
-            gw.Run(30, 30);
+            gw.Run();
         }
 
         private void Gw_RenderFrame(object sender, FrameEventArgs e)
@@ -101,6 +109,7 @@ namespace Spark.GL
             if (!woken) return;
             foreach (GameObject go in gameObjects)
             {
+                if (!go.Active) continue;
                 foreach (Component component in go.components)
                 {
                     component.Render();
@@ -120,8 +129,10 @@ namespace Spark.GL
             // Draw all our objects
             foreach (GameObject v in gameObjects)
             {
+                if (!v.Active) continue;
                 MeshRenderer r = v.GetComponent<MeshRenderer>();
                 if (r == null) continue;
+                if (!r.viewable) continue;
                 GL4.BindTexture(TextureTarget.Texture2D, r.f.material.TextureID);
                 GL4.UniformMatrix4(defaultShader.GetUniform("modelview"), false, ref r.ModelViewProjectionMatrix);
                 if (defaultShader.GetAttribute("maintexture") != -1)
@@ -141,17 +152,17 @@ namespace Spark.GL
 
                 if (defaultShader.GetUniform("material_ambient") != -1)
                 {
-                    GL4.Uniform3(defaultShader.GetUniform("material_ambient"), ref r.f.material.AmbientColor);
+                    GL4.Uniform3(defaultShader.GetUniform("material_ambient"), ref r.f.material.ambientColor);
                 }
 
                 if (defaultShader.GetUniform("material_diffuse") != -1)
                 {
-                    GL4.Uniform3(defaultShader.GetUniform("material_diffuse"), ref r.f.material.DiffuseColor);
+                    GL4.Uniform3(defaultShader.GetUniform("material_diffuse"), ref r.f.material.diffuseColor);
                 }
 
                 if (defaultShader.GetUniform("material_specular") != -1)
                 {
-                    GL4.Uniform3(defaultShader.GetUniform("material_specular"), ref r.f.material.SpecularColor);
+                    GL4.Uniform3(defaultShader.GetUniform("material_specular"), ref r.f.material.specularColor);
                 }
 
                 if (defaultShader.GetUniform("material_specExponent") != -1)
@@ -224,6 +235,8 @@ namespace Spark.GL
 
             defaultShader.DisableVertexAttribArrays();
 
+            FrameRate = (float)gw.RenderFrequency;
+            //Title = FrameRate.ToString();
             GL4.Flush();
             gw.SwapBuffers();
             updated = false;
@@ -231,13 +244,17 @@ namespace Spark.GL
 
         private void Gw_Load(object sender, EventArgs e)
         {
+            GL4.CullFace(CullFaceMode.Back);
+            GL4.Enable(EnableCap.CullFace);
+            GL4.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+            GL4.Enable(EnableCap.Blend);
             GL4.GenBuffers(1, out ibo_elements);
             shaders["color"].GLLoad();
             shaders["tex"].GLLoad();
             shaders["lit"].GLLoad();
             shaders["multilit"].GLLoad();
             shaders["advlit"].GLLoad();
-            defaultShader = shaders["advlit"];
+            defaultShader = shaders["tex"];
             woken = true;
             OpenTK.Input.Mouse.SetPosition(gw.Bounds.Left + gw.Bounds.Width / 2, gw.Bounds.Top + gw.Bounds.Height / 2);
             gw.RenderFrame += Gw_RenderFrame;
@@ -249,10 +266,30 @@ namespace Spark.GL
             if (!woken) return;
             foreach (GameObject go in gameObjects)
             {
+                if (!go.Active) continue;
                 foreach (Component component in go.components)
                 {
                     component.Update();
                 }
+            }
+            if (updated) return;
+
+            // Update model view matrices
+            foreach (GameObject v in gameObjects)
+            {
+                if (!v.Active) continue;
+                MeshRenderer r = v.GetComponent<MeshRenderer>();
+                if (r == null) continue;
+                r.CalculateModelMatrix();
+                r.ViewProjectionMatrix = camera.GetViewMatrix() * camera.CreateView(Width, Height);
+                r.ModelViewProjectionMatrix = r.ModelMatrix * r.ViewProjectionMatrix;
+                FrustumCullingHelper.ExtractFrustum(r.ViewProjectionMatrix);
+                r.viewable = FrustumCullingHelper.BoxInFrustum((r.mesh.Center * v.transform.Scale) + v.transform.Position, r.mesh.Size * v.transform.Scale);
+                //Console.WriteLine(v.Name);
+                //Console.WriteLine("[{0},{1},{2},{3}]", r.ModelViewProjectionMatrix.M11, r.ModelViewProjectionMatrix.M12, r.ModelViewProjectionMatrix.M13, r.ModelViewProjectionMatrix.M14);
+                //Console.WriteLine("[{0},{1},{2},{3}]", r.ModelViewProjectionMatrix.M21, r.ModelViewProjectionMatrix.M22, r.ModelViewProjectionMatrix.M23, r.ModelViewProjectionMatrix.M24);
+                //Console.WriteLine("[{0},{1},{2},{3}]", r.ModelViewProjectionMatrix.M31, r.ModelViewProjectionMatrix.M32, r.ModelViewProjectionMatrix.M33, r.ModelViewProjectionMatrix.M34);
+                //Console.WriteLine("[{0},{1},{2},{3}]", r.ModelViewProjectionMatrix.M41, r.ModelViewProjectionMatrix.M42, r.ModelViewProjectionMatrix.M43, r.ModelViewProjectionMatrix.M44);
             }
 
             List<Vector3> verts = new List<Vector3>();
@@ -263,9 +300,11 @@ namespace Spark.GL
             int vertcount = 0;
             foreach (GameObject go in gameObjects)
             {
+                if (!go.Active) continue;
                 MeshRenderer renderer = go.GetComponent<MeshRenderer>();
                 if (renderer != null)
                 {
+                    if (!renderer.viewable) continue;
                     verts.AddRange(Array.ConvertAll(renderer.mesh.Verticies, item => (Vector3)item));
                     inds.AddRange(renderer.mesh.TrianglesToInds(vertcount));
                     //colors.AddRange(Array.ConvertAll(renderer.mesh.Colors, item => (Vector3)item));
@@ -307,17 +346,6 @@ namespace Spark.GL
                 GL4.VertexAttribPointer(defaultShader.GetAttribute("vNormal"), 3, VertexAttribPointerType.Float, true, 0, 0);
             }
 
-
-            // Update model view matrices
-            foreach (GameObject v in gameObjects)
-            {
-                MeshRenderer r = v.GetComponent<MeshRenderer>();
-                if (r == null) continue;
-                r.CalculateModelMatrix();
-                r.ViewProjectionMatrix = camera.GetViewMatrix() * camera.CreateView(Width, Height);
-                r.ModelViewProjectionMatrix = r.ModelMatrix * r.ViewProjectionMatrix;
-            }
-
             GL4.UseProgram(defaultShader.ProgramID);
 
             GL4.BindBuffer(BufferTarget.ArrayBuffer, 0);
@@ -343,6 +371,7 @@ namespace Spark.GL
 
         public void RemoveObject(GameObject obj)
         {
+            obj.parent.children.Remove(obj);
             gameObjects.Remove(obj);
         }
 
