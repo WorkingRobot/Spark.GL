@@ -155,11 +155,11 @@ namespace Spark.GL
         {
             get
             {
-                Vec3[] list = new List<Vec3>(faces.Count);
+                Vec3[] list = new Vec3[faces.Count];
                 int i = 0;
                 foreach (Tuple<FaceVertex, FaceVertex, FaceVertex> tri in faces)
                 {
-                    list[i/3] = new Vec3(i, i + 1, i + 2));
+                    list[i/3] = new Vec3(i, i + 1, i + 2);
                     i += 3;
                 }
                 return list;
