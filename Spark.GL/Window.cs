@@ -51,6 +51,7 @@ namespace Spark.GL
             shaders.Add("lit", new Shader("C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/LitShader/vs.glsl", "C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/LitShader/fs.glsl"));
             shaders.Add("multilit", new Shader("C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/MultiLitShader/vs.glsl", "C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/MultiLitShader/fs.glsl"));
             shaders.Add("advlit", new Shader("C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/AdvLitShader/vs.glsl", "C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/AdvLitShader/fs.glsl"));
+            defaultShader = shaders["tex"];
         }
         public void Exit()
         {
@@ -254,7 +255,6 @@ namespace Spark.GL
             shaders["lit"].GLLoad();
             shaders["multilit"].GLLoad();
             shaders["advlit"].GLLoad();
-            defaultShader = shaders["tex"];
             woken = true;
             OpenTK.Input.Mouse.SetPosition(gw.Bounds.Left + gw.Bounds.Width / 2, gw.Bounds.Top + gw.Bounds.Height / 2);
             gw.RenderFrame += Gw_RenderFrame;

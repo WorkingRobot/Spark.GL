@@ -75,7 +75,7 @@ namespace Spark.GL
             get
             {
                 List<Vec3> v = new List<Vec3>();
-                foreach (Tuple<FaceVertex,FaceVertex,FaceVertex> vert in faces)
+                foreach (Tuple<FaceVertex, FaceVertex, FaceVertex> vert in faces)
                 {
                     v.Add(new Vec3(vert.Item1.Position));
                     v.Add(new Vec3(vert.Item2.Position));
@@ -85,7 +85,7 @@ namespace Spark.GL
             }
             set
             {
-                for (int i = 0; i < faces.Count;++i)
+                for (int i = 0; i < faces.Count; ++i)
                 {
                     FaceVertex a = faces[i].Item1;
                     FaceVertex b = faces[i].Item2;
@@ -155,23 +155,44 @@ namespace Spark.GL
         {
             get
             {
-                List<Vec3> list = new List<Vec3>();
+                Vec3[] list = new List<Vec3>(faces.Count);
                 int i = 0;
-                foreach(Tuple<FaceVertex,FaceVertex,FaceVertex> tri in faces)
+                foreach (Tuple<FaceVertex, FaceVertex, FaceVertex> tri in faces)
                 {
-                    list.Add(new Vec3(i,i+1,i+2));
+                    list[i/3] = new Vec3(i, i + 1, i + 2));
                     i += 3;
                 }
-                return list.ToArray();
+                return list;
             }
         }
 
         public List<Tuple<FaceVertex, FaceVertex, FaceVertex>> faces = new List<Tuple<FaceVertex, FaceVertex, FaceVertex>>();
 
         //public Material material;
+        private Vec3 _center;
 
-        public Vec3 Center { get; private set; }
-        public Vec3 Size { get; private set; }
+        public Vec3 Center {
+            get {
+                if (_center == null)
+                {
+                    _center = CalculateCenter();
+                }
+                return _center;
+            }
+        }
+
+        private Vec3 _size;
+        public Vec3 Size {
+            get
+            {
+                if (_size == null)
+                {
+                    _size = CalculateSize();
+                }
+                return _size;
+            }
+        }
+
 
         private Vec3 CalculateCenter()
         {
@@ -372,21 +393,22 @@ namespace Spark.GL
             }
             faces = m.faces;
         }
-        public Mesh(Vec3[] verts, Vec3[] tris, Vec3[] colors, Vec2[] tex)
+        public Mesh(IEnumerable<Vec3> verts, IEnumerable<Vec3> tris, IEnumerable<Vec3> colors, IEnumerable<Vec2> tex)
         {
             List<Tuple<FaceVertex, FaceVertex, FaceVertex>> _faces = new List<Tuple<FaceVertex, FaceVertex, FaceVertex>>();
             foreach (Vec3 triangle in tris)
             {
                 _faces.Add(new Tuple<FaceVertex,FaceVertex,FaceVertex>(
-                    new FaceVertex(verts[(int)triangle.X], new Vec3(), tex[(int)triangle.X]),
-                    new FaceVertex(verts[(int)triangle.Y], new Vec3(), tex[(int)triangle.Y]),
-                    new FaceVertex(verts[(int)triangle.Z], new Vec3(), tex[(int)triangle.Z])
+                    new FaceVertex(verts.ElementAt((int)triangle.X), new Vec3(), tex.ElementAt((int)triangle.X)),
+                    new FaceVertex(verts.ElementAt((int)triangle.Y), new Vec3(), tex.ElementAt((int)triangle.Y)),
+                    new FaceVertex(verts.ElementAt((int)triangle.Z), new Vec3(), tex.ElementAt((int)triangle.Z))
                     ));
             }
             faces = _faces;
-            CalculateNormals();
-            Center = CalculateCenter();
-            Size = CalculateSize();
+            if (Window.window.shaders.FirstOrDefault(x => x.Value == Window.defaultShader).Key.Contains("lit")) //im too lazy to make multiple ifs. who do you think i am
+            {
+                CalculateNormals();
+            }
         }
         public Mesh(string filename) : this(filename, TypeFromFile(filename)) { }
         private static FileType TypeFromFile(string filename)
