@@ -28,6 +28,8 @@ namespace Spark.GL
         {
             Mouse.SetPosition(window.gw.Bounds.Left + window.gw.Bounds.Width / 2, window.gw.Bounds.Top + window.gw.Bounds.Height / 2);
         }
+
+        public Vec2 Center { get { return new Vec2(window.gw.Bounds.Left + window.gw.Bounds.Width / 2, window.gw.Bounds.Top + window.gw.Bounds.Height / 2); } }
     }
     public enum MouseButton
     {

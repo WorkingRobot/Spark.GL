@@ -60,18 +60,23 @@ namespace TestProject
         public override void Update()
         {
             var ki = w.GetKeyboardInput();
-            Vec3 pos = new Vec3();
-            pos.Z += ki.KeyDown(Key.W) ? speed : 0;
-            pos.Z -= ki.KeyDown(Key.S) ? speed : 0;
-            pos.Y += ki.KeyDown(Key.Space) ? speed : 0;
-            pos.Y -= ki.KeyDown(Key.ShiftLeft) ? speed : 0;
-            pos.X += ki.KeyDown(Key.D) ? speed : 0;
-            pos.X -= ki.KeyDown(Key.A) ? speed : 0;
-            cam.Move(pos.X,pos.Y,pos.Z);
-            var mi = w.GetMouseInput();
-            Vec2 rot = new Vec2(mi.PosX, mi.PosY);
-            cam.AddRotation((lastmousepos.X-rot.X) * rotspeed, (lastmousepos.Y - rot.Y) * rotspeed);
-            mi.ResetMousePosition();
+            if (!ki.KeyDown(Key.RShift))
+            {
+                Vec3 pos = new Vec3();
+                pos.Z += ki.KeyDown(Key.W) ? speed : 0;
+                pos.Z -= ki.KeyDown(Key.S) ? speed : 0;
+                pos.Y += ki.KeyDown(Key.Space) ? speed : 0;
+                pos.Y -= ki.KeyDown(Key.ShiftLeft) ? speed : 0;
+                pos.X += ki.KeyDown(Key.D) ? speed : 0;
+                pos.X -= ki.KeyDown(Key.A) ? speed : 0;
+                cam.Move(pos.X, pos.Y, pos.Z);
+                var mi = w.GetMouseInput();
+                Vec2 rot = new Vec2(mi.PosX, mi.PosY);
+                cam.AddRotation((lastmousepos.X - rot.X) * rotspeed, (lastmousepos.Y - rot.Y) * rotspeed);
+                mi.ResetMousePosition();
+                lastmousepos = mi.Center;
+                w.Title = ""+w.FrameRate;
+            }
             //lastmousepos = rot;
             t++;
         }

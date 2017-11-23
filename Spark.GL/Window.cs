@@ -46,11 +46,11 @@ namespace Spark.GL
             sunLight.Type = LightType.Directional;
             sunLight.Direction = new Vec3(sunLight.position.Normalized());
             lights.Add(sunLight);
-            shaders.Add("color", new Shader("C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/ColorShader/vs.glsl", "C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/ColorShader/fs.glsl"));
-            shaders.Add("tex", new Shader("C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/TexShader/vs.glsl", "C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/TexShader/fs.glsl"));
-            shaders.Add("lit", new Shader("C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/LitShader/vs.glsl", "C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/LitShader/fs.glsl"));
-            shaders.Add("multilit", new Shader("C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/MultiLitShader/vs.glsl", "C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/MultiLitShader/fs.glsl"));
-            shaders.Add("advlit", new Shader("C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/AdvLitShader/vs.glsl", "C:/Users/Aleks.Aleks-PC/Documents/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/AdvLitShader/fs.glsl"));
+            shaders.Add("color", new Shader("J:/Code/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/ColorShader/vs.glsl", "J:/Code/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/ColorShader/fs.glsl"));
+            shaders.Add("tex", new Shader("J:/Code/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/TexShader/vs.glsl", "J:/Code/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/TexShader/fs.glsl"));
+            shaders.Add("lit", new Shader("J:/Code/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/LitShader/vs.glsl", "J:/Code/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/LitShader/fs.glsl"));
+            shaders.Add("multilit", new Shader("J:/Code/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/MultiLitShader/vs.glsl", "J:/Code/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/MultiLitShader/fs.glsl"));
+            shaders.Add("advlit", new Shader("J:/Code/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/AdvLitShader/vs.glsl", "J:/Code/Visual Studio 2017/Projects/Spark.GL/Spark.GL/Shaders/AdvLitShader/fs.glsl"));
             defaultShader = shaders["tex"];
         }
         public void Exit()
@@ -90,6 +90,14 @@ namespace Spark.GL
             GL4.ClearColor(Color4.CornflowerBlue);
             
             gw.Load += Gw_Load;
+            gw.Resize += Gw_Resize;
+        }
+
+        private void Gw_Resize(object sender, EventArgs e)
+        {
+            GL4.Viewport(gw.ClientRectangle.X, gw.ClientRectangle.Y, gw.ClientRectangle.Width, gw.ClientRectangle.Height);
+            Width = gw.ClientRectangle.Width;
+            Height = gw.ClientRectangle.Height;
         }
 
         public void Run()
